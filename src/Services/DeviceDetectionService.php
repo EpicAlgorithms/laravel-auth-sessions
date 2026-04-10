@@ -6,6 +6,7 @@ namespace EpicAlgorithms\AuthSessions\Services;
 
 use EpicAlgorithms\AuthSessions\Enums\DeviceType;
 use OzanKurt\Agent\Agent;
+use Throwable;
 
 class DeviceDetectionService
 {
@@ -26,10 +27,26 @@ class DeviceDetectionService
             'device_type_id' => $this->resolveDeviceType($agent),
             'device' => $this->resolveDevice($agent),
             'platform' => $platform,
-            'platform_version' => $platform ? $this->resolveString($agent->version($platform)) : null,
+            'platform_version' => $this->safeVersion($agent, $platform),
             'browser' => $browser,
-            'browser_version' => $browser ? $this->resolveString($agent->version($browser)) : null,
+            'browser_version' => $this->safeVersion($agent, $browser),
         ];
+    }
+
+    // ozankurt/agent 1.0.3 calls self::VER in version(), which was removed upstream in
+    // mobiledetect/mobiledetectlib 4.x. Until the fork catches up, swallow the failure
+    // so a broken version lookup does not block session creation.
+    private function safeVersion(Agent $agent, ?string $name): ?string
+    {
+        if (! $name) {
+            return null;
+        }
+
+        try {
+            return $this->resolveString($agent->version($name));
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function resolveDeviceType(Agent $agent): int

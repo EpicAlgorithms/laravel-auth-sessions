@@ -36,6 +36,9 @@
             "EpicAlgorithms\\AuthSessions\\Tests\\": "tests/"
         }
     },
+    "repositories": [
+        { "type": "composer", "url": "https://satis.epicalgorithms.dev" }
+    ],
     "extra": {
         "laravel": {
             "providers": [

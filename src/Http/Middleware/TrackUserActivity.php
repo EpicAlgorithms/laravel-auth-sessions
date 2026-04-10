@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace EpicAlgorithms\AuthSessions\Http\Middleware;
 
-use App\Services\Admin\ImpersonationService;
 use Closure;
 use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Models\AuthSession;
@@ -17,7 +16,6 @@ class TrackUserActivity
 {
     public function __construct(
         private readonly AuthSessionService $authSessionService,
-        private readonly ImpersonationService $impersonationService,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -25,7 +23,8 @@ class TrackUserActivity
         $response = $next($request);
 
         // CRITICAL: Skip ALL activity tracking if impersonating
-        if ($this->impersonationService->isImpersonating()) {
+        $impersonationCheck = config('auth-sessions.impersonation_check');
+        if (is_callable($impersonationCheck) && $impersonationCheck()) {
             return $response;
         }
 

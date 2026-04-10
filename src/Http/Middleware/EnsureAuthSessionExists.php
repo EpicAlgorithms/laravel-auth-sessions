@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace EpicAlgorithms\AuthSessions\Http\Middleware;
 
-use App\Models\User;
-use App\Services\Admin\ImpersonationService;
 use Closure;
 use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Enums\LoginMethod;
@@ -18,12 +16,12 @@ class EnsureAuthSessionExists
 {
     public function __construct(
         private readonly AuthSessionService $authSessionService,
-        private readonly ImpersonationService $impersonationService,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($this->impersonationService->isImpersonating()) {
+        $impersonationCheck = config('auth-sessions.impersonation_check');
+        if (is_callable($impersonationCheck) && $impersonationCheck()) {
             return $next($request);
         }
 
@@ -31,7 +29,7 @@ class EnsureAuthSessionExists
         if (Auth::check() && ! session()->has(SessionKey::AUTH_SESSION_ID)) {
             $user = Auth::user();
 
-            if ($user instanceof User) {
+            if ($user !== null) {
                 $authSession = $this->authSessionService->createSession(
                     user: $user,
                     loginMethod: LoginMethod::RememberToken,

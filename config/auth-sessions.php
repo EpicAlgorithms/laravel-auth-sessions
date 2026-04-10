@@ -11,6 +11,9 @@ return [
     'route_prefix' => 'settings',
     'middleware' => ['web', 'auth'],
     'controller' => \App\Http\Controllers\Account\SessionsController::class,
+    // Optional closure that returns true when the current request is an impersonation session.
+    // Rd-hub overrides this to call its ImpersonationService. Leave null to disable.
+    'impersonation_check' => null,
     'views' => [
         'sessions' => 'auth-sessions::sessions.index',
     ],

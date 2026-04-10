@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Listeners;
+
+use App\Notifications\NewDeviceLoginNotification;
+use EpicAlgorithms\AuthSessions\Events\NewDeviceLogin;
+
+class SendNewDeviceLoginNotification
+{
+    public function handle(NewDeviceLogin $event): void
+    {
+        $user = $event->user;
+
+        // Customize this check to match your User model's opt-in column, or remove it.
+        if (! ($user->notify_on_new_device ?? true)) {
+            return;
+        }
+
+        $user->notify(new NewDeviceLoginNotification($event->session));
+    }
+}

@@ -1,0 +1,51 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Notifications;
+
+use EpicAlgorithms\AuthSessions\Models\AuthSession;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class NewDeviceLoginNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(
+        public readonly AuthSession $session,
+    ) {
+    }
+
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('New device login')
+            ->view('auth-sessions::emails.new-device-login', [
+                'deviceType' => optional($this->session->deviceType)->name ?? 'Unknown',
+                'browser' => $this->session->browser_name,
+                'os' => $this->session->os_name,
+                'ip' => $this->session->ip_address,
+                'when' => $this->session->created_at?->toFormattedDateString(),
+                'sessionsUrl' => url('/settings/sessions'),
+            ]);
+    }
+
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'session_id' => $this->session->id,
+            'ip' => $this->session->ip_address,
+            'browser' => $this->session->browser_name,
+            'os' => $this->session->os_name,
+            'device_type_id' => $this->session->device_type_id,
+        ];
+    }
+}

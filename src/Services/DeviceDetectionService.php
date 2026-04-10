@@ -12,7 +12,7 @@ class DeviceDetectionService
     /**
      * Parse a User-Agent string and return device info array for session creation.
      *
-     * @return array{device_type_id: DeviceType, device: string|null, platform: string|null, platform_version: string|null, browser: string|null, browser_version: string|null}
+     * @return array{device_type_id: int, device: string|null, platform: string|null, platform_version: string|null, browser: string|null, browser_version: string|null}
      */
     public function detect(string $userAgent): array
     {
@@ -32,17 +32,17 @@ class DeviceDetectionService
         ];
     }
 
-    private function resolveDeviceType(Agent $agent): DeviceType
+    private function resolveDeviceType(Agent $agent): int
     {
         if ($agent->isTablet()) {
-            return DeviceType::Tablet;
+            return DeviceType::TABLET;
         }
 
         if ($agent->isMobile()) {
-            return DeviceType::Mobile;
+            return DeviceType::MOBILE;
         }
 
-        return DeviceType::Desktop;
+        return DeviceType::DESKTOP;
     }
 
     private function resolveDevice(Agent $agent): ?string

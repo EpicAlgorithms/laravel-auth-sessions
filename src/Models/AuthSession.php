@@ -27,13 +27,13 @@ class AuthSession extends Model
     protected function casts(): array
     {
         return [
-            'login_method_id' => LoginMethod::class,
-            'device_type_id' => DeviceType::class,
+            'login_method_id' => 'integer',
+            'device_type_id' => 'integer',
             'is_remembered' => 'boolean',
             'last_seen_at' => 'datetime',
             'expires_at' => 'datetime',
             'revoked_at' => 'datetime',
-            'revoke_reason_id' => SessionRevokeReason::class,
+            'revoke_reason_id' => 'integer',
             'created_at' => 'datetime',
         ];
     }
@@ -41,6 +41,21 @@ class AuthSession extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('auth-sessions.user_model'));
+    }
+
+    public function loginMethod(): BelongsTo
+    {
+        return $this->belongsTo(LoginMethod::class, 'login_method_id');
+    }
+
+    public function deviceType(): BelongsTo
+    {
+        return $this->belongsTo(DeviceType::class, 'device_type_id');
+    }
+
+    public function revokeReason(): BelongsTo
+    {
+        return $this->belongsTo(SessionRevokeReason::class, 'revoke_reason_id');
     }
 
     public function isActive(): bool
@@ -68,32 +83,32 @@ class AuthSession extends Model
         return $this->update(['last_seen_at' => now()]);
     }
 
-    public function revoke(SessionRevokeReason $reason): bool
+    public function revoke(int $reasonId): bool
     {
         return $this->update([
             'revoked_at' => now(),
-            'revoke_reason_id' => $reason,
+            'revoke_reason_id' => $reasonId,
         ]);
     }
 
-    public static function revokeAllExcept(Authenticatable $user, string $exceptId, SessionRevokeReason $reason): int
+    public static function revokeAllExcept(Authenticatable $user, string $exceptId, int $reasonId): int
     {
         return static::where('user_id', $user->getAuthIdentifier())
             ->where('id', '!=', $exceptId)
             ->whereNull('revoked_at')
             ->update([
                 'revoked_at' => now(),
-                'revoke_reason_id' => $reason,
+                'revoke_reason_id' => $reasonId,
             ]);
     }
 
-    public static function revokeAllForUser(Authenticatable $user, SessionRevokeReason $reason): int
+    public static function revokeAllForUser(Authenticatable $user, int $reasonId): int
     {
         return static::where('user_id', $user->getAuthIdentifier())
             ->whereNull('revoked_at')
             ->update([
                 'revoked_at' => now(),
-                'revoke_reason_id' => $reason,
+                'revoke_reason_id' => $reasonId,
             ]);
     }
 

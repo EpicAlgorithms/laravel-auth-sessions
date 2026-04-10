@@ -44,7 +44,7 @@ class AuthSessionSubscriber
         // Create auth session
         $authSession = $this->authSessionService->createSession(
             user: $event->user,
-            loginMethod: $loginMethod,
+            loginMethodId: $loginMethod,
             ip: request()->ip() ?? '0.0.0.0',
             userAgent: request()->userAgent() ?? '',
             isRemembered: $event->remember,
@@ -110,7 +110,7 @@ class AuthSessionSubscriber
         // 3. Deletes Laravel runtime session from sessions table
         $this->authSessionService->revokeSession(
             session: $session,
-            reason: SessionRevokeReason::find(SessionRevokeReason::USER_LOGOUT),
+            reasonId: SessionRevokeReason::USER_LOGOUT,
             invalidateRuntimeSession: true,
         );
     }

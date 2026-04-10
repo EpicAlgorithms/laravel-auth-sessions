@@ -41,7 +41,7 @@ class EnforceSessionExpiry
                 if ($this->authSessionService->checkInactivityExpiry($authSession)) {
                     $this->authSessionService->revokeSession(
                         $authSession,
-                        SessionRevokeReason::InactivityExpiry
+                        SessionRevokeReason::INACTIVITY_EXPIRY
                     );
 
                     return $this->forceLogout($request, 'Session expired due to inactivity.');

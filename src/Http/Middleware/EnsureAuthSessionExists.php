@@ -32,7 +32,7 @@ class EnsureAuthSessionExists
             if ($user !== null) {
                 $authSession = $this->authSessionService->createSession(
                     user: $user,
-                    loginMethod: LoginMethod::RememberToken,
+                    loginMethodId: LoginMethod::REMEMBER_TOKEN,
                     ip: $request->ip() ?? '0.0.0.0',
                     userAgent: $request->userAgent() ?? '',
                     isRemembered: true,

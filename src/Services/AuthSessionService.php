@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace EpicAlgorithms\AuthSessions\Services;
 
-use EpicAlgorithms\AuthSessions\Enums\LoginMethod;
 use EpicAlgorithms\AuthSessions\Enums\SessionRevokeReason;
 use EpicAlgorithms\AuthSessions\Models\AuthDevice;
 use EpicAlgorithms\AuthSessions\Models\AuthSession;
@@ -20,7 +19,7 @@ class AuthSessionService
 
     public function createSession(
         Authenticatable $user,
-        LoginMethod $loginMethod,
+        int $loginMethodId,
         string $ip,
         string $userAgent,
         bool $isRemembered,
@@ -32,12 +31,12 @@ class AuthSessionService
             ? config('auth-sessions.remember_me_duration')
             : config('auth-sessions.session_lifetime');
 
-        return DB::transaction(function () use ($user, $loginMethod, $ip, $userAgent, $isRemembered, $laravelSessionId, $deviceId, $deviceInfo, $lifetime) {
+        return DB::transaction(function () use ($user, $loginMethodId, $ip, $userAgent, $isRemembered, $laravelSessionId, $deviceId, $deviceInfo, $lifetime) {
             return AuthSession::create([
                 'user_id' => $user->getAuthIdentifier(),
                 'device_id' => $deviceId,
                 'laravel_session_id' => $laravelSessionId,
-                'login_method_id' => $loginMethod,
+                'login_method_id' => $loginMethodId,
                 'device_type_id' => $deviceInfo['device_type_id'],
                 'os_name' => $deviceInfo['platform'],
                 'os_version' => $deviceInfo['platform_version'],
@@ -55,12 +54,12 @@ class AuthSessionService
 
     public function revokeSession(
         AuthSession $session,
-        SessionRevokeReason $reason,
+        int $reasonId,
         bool $invalidateRuntimeSession = true,
     ): bool {
-        return DB::transaction(function () use ($session, $reason, $invalidateRuntimeSession) {
+        return DB::transaction(function () use ($session, $reasonId, $invalidateRuntimeSession) {
             // 1. Revoke the auth_session
-            $revoked = $session->revoke($reason);
+            $revoked = $session->revoke($reasonId);
 
             // 2. Set requires_reauth for this device
             if ($session->device_id) {
@@ -95,7 +94,7 @@ class AuthSessionService
             $count = AuthSession::revokeAllExcept(
                 $user,
                 $currentSession->id,
-                SessionRevokeReason::LogoutOtherDevices
+                SessionRevokeReason::LOGOUT_OTHER_DEVICES
             );
 
             // 3. Set requires_reauth for other devices
@@ -125,7 +124,7 @@ class AuthSessionService
             ->get();
     }
 
-    public function revokeSessionById(Authenticatable $user, string $authSessionId, SessionRevokeReason $reason): bool
+    public function revokeSessionById(Authenticatable $user, string $authSessionId, int $reasonId): bool
     {
         $session = AuthSession::find($authSessionId);
 
@@ -133,7 +132,7 @@ class AuthSessionService
             return false;
         }
 
-        return $this->revokeSession($session, $reason);
+        return $this->revokeSession($session, $reasonId);
     }
 
     public function revokeOtherSessionsByLaravelSessionId(Authenticatable $user, string $laravelSessionId): int

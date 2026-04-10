@@ -36,7 +36,7 @@ abstract class BaseSessionsController extends Controller
         $this->authSessionService->revokeSessionById(
             $user,
             $session,
-            SessionRevokeReason::find(SessionRevokeReason::USER_REVOKED_DEVICE),
+            SessionRevokeReason::USER_REVOKED_DEVICE,
         );
 
         return back()->with('status', 'Session has been terminated.');

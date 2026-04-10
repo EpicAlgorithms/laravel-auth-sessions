@@ -23,7 +23,9 @@ class AuthSessionsServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'auth-sessions');
         \Illuminate\Support\Facades\Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'auth-sessions');
-        $this->loadRoutesFrom(__DIR__.'/../routes/auth-sessions.php');
+        if (config('auth-sessions.register_routes', true)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/auth-sessions.php');
+        }
 
         if (class_exists(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class)) {
             $this->app['events']->subscribe(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class);

@@ -10,6 +10,10 @@ return [
     'user_model' => \App\Models\User::class,
     'route_prefix' => 'settings',
     'middleware' => ['web', 'auth'],
+    // When true (default), the package auto-registers its routes via the service provider.
+    // Set to false if your application defines its own routes for /settings/sessions
+    // that point to a subclass of BaseSessionsController.
+    'register_routes' => true,
     'controller' => \App\Http\Controllers\Account\SessionsController::class,
     // Optional closure that returns true when the current request is an impersonation session.
     // Rd-hub overrides this to call its ImpersonationService. Leave null to disable.

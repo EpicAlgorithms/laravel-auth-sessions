@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace EpicAlgorithms\AuthSessions;
 
+use EpicAlgorithms\ApiKit\ApiKitServiceProvider;
 use EpicAlgorithms\AuthSessions\Console\Commands\PruneAuthSessionsCommand;
+use EpicAlgorithms\AuthSessions\Models\AuthDevice;
 use EpicAlgorithms\AuthSessions\Models\AuthSession;
 use EpicAlgorithms\AuthSessions\Services\AuthSessionService;
 use EpicAlgorithms\AuthSessions\Services\DeviceDetectionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\ServiceProvider;
 
-class AuthSessionsServiceProvider extends ServiceProvider
+class AuthSessionsServiceProvider extends ApiKitServiceProvider
 {
     public function register(): void
     {
@@ -33,6 +34,10 @@ class AuthSessionsServiceProvider extends ServiceProvider
         if (config('auth-sessions.register_routes', true)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/auth-sessions.php');
         }
+
+        // Opt-in JSON API surface (api-kit). A no-op while http.mode is
+        // headless; additive to the web routes above when enabled.
+        $this->registerModuleApi('auth-sessions', __DIR__.'/../routes/api.php');
 
         if (class_exists(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class)) {
             $this->app['events']->subscribe(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class);
@@ -85,6 +90,26 @@ class AuthSessionsServiceProvider extends ServiceProvider
             }
 
             return AuthSession::query()
+                ->whereKey($value)
+                ->where('user_id', $user->getAuthIdentifier())
+                ->firstOrFail();
+        });
+
+        // Same owner-scoping for {authDevice}: a device is only ever resolvable
+        // by its owner, so a foreign or unknown id 404s instead of leaking or
+        // acting on another user's row. Used by the JSON device API.
+        Route::bind('authDevice', function ($value) {
+            $user = Auth::user();
+
+            if ($user === null) {
+                abort(404);
+            }
+
+            if (method_exists($user, 'authDevices')) {
+                return $user->authDevices()->whereKey($value)->firstOrFail();
+            }
+
+            return AuthDevice::query()
                 ->whereKey($value)
                 ->where('user_id', $user->getAuthIdentifier())
                 ->firstOrFail();

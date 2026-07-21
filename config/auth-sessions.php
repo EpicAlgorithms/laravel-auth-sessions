@@ -22,4 +22,18 @@ return [
         'sessions' => 'auth-sessions::sessions.index',
     ],
     'layout' => 'layouts.app',
+
+    // Opt-in JSON REST API, built on epicalgorithms/laravel-api-kit. Additive to
+    // the web session-manager routes above and gated entirely by `http.mode`:
+    //   headless (default) - no API routes are registered.
+    //   api                - the JSON endpoints under `prefix` are registered.
+    //   ui                 - superset of api (reserved; behaves like api here).
+    // See EpicAlgorithms\ApiKit\Http\HttpMode.
+    'http' => [
+        'mode' => env('AUTH_SESSIONS_HTTP_MODE', 'headless'),
+        'prefix' => 'api/account',
+        'middleware' => ['api'],
+        'auth_middleware' => ['auth'],
+        'rate_limit' => env('AUTH_SESSIONS_API_RATE_LIMIT', '60,1'),
+    ],
 ];

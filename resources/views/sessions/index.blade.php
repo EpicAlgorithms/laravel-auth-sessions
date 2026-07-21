@@ -26,6 +26,12 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="mb-4 p-4 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="space-y-4">
         @forelse($sessions as $session)
             <x-auth-sessions::session-card

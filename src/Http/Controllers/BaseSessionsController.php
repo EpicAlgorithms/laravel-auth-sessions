@@ -6,6 +6,7 @@ namespace EpicAlgorithms\AuthSessions\Http\Controllers;
 
 use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Enums\SessionRevokeReason;
+use EpicAlgorithms\AuthSessions\Models\AuthSession;
 use EpicAlgorithms\AuthSessions\Services\AuthSessionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,15 +30,21 @@ abstract class BaseSessionsController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, string $session): RedirectResponse
+    public function destroy(Request $request, AuthSession $authSession): RedirectResponse
     {
-        $user = Auth::user();
-
-        $this->authSessionService->revokeSessionById(
-            $user,
-            $session,
+        // {authSession} is resolved through owner-scoped implicit route-model
+        // binding (see AuthSessionsServiceProvider). By the time we reach here
+        // the row is guaranteed to belong to the authenticated user; an unknown
+        // or foreign id has already produced a 404. We only need to report
+        // honestly whether a row was actually revoked.
+        $revoked = $this->authSessionService->revokeSession(
+            $authSession,
             SessionRevokeReason::USER_REVOKED_DEVICE,
         );
+
+        if (! $revoked) {
+            return back()->with('error', 'Session could not be terminated.');
+        }
 
         return back()->with('status', 'Session has been terminated.');
     }

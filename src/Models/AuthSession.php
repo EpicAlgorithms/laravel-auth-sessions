@@ -117,8 +117,21 @@ class AuthSession extends Model
         return static::where('expires_at', '<', now()->subDays(30))->delete();
     }
 
+    /**
+     * Delete the underlying Laravel runtime session row.
+     *
+     * ASSUMPTION: this only makes sense when the application uses the
+     * `database` session driver, where runtime sessions live in the `sessions`
+     * table. Under any other driver (file, cookie, redis, array, ...) there is
+     * no such table, so we skip the delete rather than error. Consumers that
+     * need cross-driver invalidation should handle it at the driver level.
+     */
     public static function deleteLaravelSession(string $sessionId): bool
     {
+        if (config('session.driver') !== 'database') {
+            return false;
+        }
+
         return DB::table('sessions')->where('id', $sessionId)->delete() > 0;
     }
 }

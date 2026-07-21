@@ -29,7 +29,15 @@ class EnforceDeviceReauth
         return $next($request);
     }
 
-    private function requiresReauth(int $userId, string $deviceId): bool
+    /**
+     * ASSUMPTION: the authenticatable's primary key is comparable to the
+     * `auth_devices.user_id` column. The default schema types that column as a
+     * `foreignId` (integer), so integer keys work as-is. The signature accepts
+     * `int|string` so string/UUID/ULID user keys do not raise a TypeError;
+     * consumers using non-integer user keys must widen the `user_id` column in
+     * a published migration to match.
+     */
+    private function requiresReauth(int|string $userId, string $deviceId): bool
     {
         return AuthDevice::where('user_id', $userId)
             ->where('device_id', $deviceId)

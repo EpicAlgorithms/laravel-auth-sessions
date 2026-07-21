@@ -1,6 +1,6 @@
 {
     "name": "epicalgorithms/laravel-auth-sessions",
-    "description": "Stateful session and device tracking for Laravel — models, middleware, and publishable views for platforms that need to know who is logged in where.",
+    "description": "Stateful session and device tracking for Laravel \u2014 models, middleware, and publishable views for platforms that need to know who is logged in where.",
     "type": "library",
     "license": "proprietary",
     "authors": [
@@ -38,8 +38,10 @@
         }
     },
     "repositories": [
-        { "type": "composer", "url": "https://satis.epicalgorithms.dev" },
-        { "type": "vcs", "url": "https://github.com/EpicAlgorithms/laravel-api-kit" }
+        {
+            "type": "composer",
+            "url": "https://satis.epicalgorithms.dev"
+        }
     ],
     "extra": {
         "laravel": {

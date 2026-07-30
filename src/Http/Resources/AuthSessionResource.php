@@ -30,12 +30,12 @@ class AuthSessionResource extends JsonResource
             'browser_name' => $this->browser_name,
             'browser_version' => $this->browser_version,
             'ip_address' => $this->ip_address,
-            'is_remembered' => (bool) $this->is_remembered,
+            'is_remembered' => $this->is_remembered,
             'is_active' => $this->isActive(),
-            'last_seen_at' => $this->last_seen_at?->toIso8601String(),
-            'expires_at' => $this->expires_at?->toIso8601String(),
+            'last_seen_at' => $this->last_seen_at->toIso8601String(),
+            'expires_at' => $this->expires_at->toIso8601String(),
             'revoked_at' => $this->revoked_at?->toIso8601String(),
-            'created_at' => $this->created_at?->toIso8601String(),
+            'created_at' => $this->created_at->toIso8601String(),
         ];
     }
 }

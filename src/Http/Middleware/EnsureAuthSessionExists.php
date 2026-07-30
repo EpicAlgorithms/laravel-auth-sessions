@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EpicAlgorithms\AuthSessions\Http\Middleware;
 
 use Closure;
+use EpicAlgorithms\AuthSessions\Concerns\ReadsDeviceCookie;
 use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Enums\LoginMethod;
 use EpicAlgorithms\AuthSessions\Services\AuthSessionService;
@@ -14,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureAuthSessionExists
 {
+    use ReadsDeviceCookie;
+
     public function __construct(
         private readonly AuthSessionService $authSessionService,
     ) {}
@@ -37,7 +40,7 @@ class EnsureAuthSessionExists
                     userAgent: $request->userAgent() ?? '',
                     isRemembered: true,
                     laravelSessionId: session()->getId(),
-                    deviceId: $request->cookie('device_id'),
+                    deviceId: $this->cookieDeviceId($request),
                 );
 
                 session()->put(SessionKey::AUTH_SESSION_ID, $authSession->id);

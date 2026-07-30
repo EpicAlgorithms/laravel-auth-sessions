@@ -16,7 +16,11 @@ class EnsureUserIsActive
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && ! Auth::user()->is_active) {
+        $user = Auth::user();
+
+        // is_active lives on the host application's user model, so it is
+        // read as a dynamic attribute rather than a declared property.
+        if ($user !== null && ! $user->getAttribute('is_active')) {
             return $this->forceLogout($request, 'Your account has been deactivated.', 'deactivated');
         }
 

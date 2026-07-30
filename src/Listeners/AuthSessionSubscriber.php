@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EpicAlgorithms\AuthSessions\Listeners;
 
+use EpicAlgorithms\AuthSessions\Concerns\ReadsDeviceCookie;
 use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Enums\SessionRevokeReason;
 use EpicAlgorithms\AuthSessions\Events\NewDeviceLogin;
@@ -16,6 +17,8 @@ use Illuminate\Events\Dispatcher;
 
 class AuthSessionSubscriber
 {
+    use ReadsDeviceCookie;
+
     public function __construct(
         private readonly AuthSessionService $authSessionService,
     ) {}
@@ -49,7 +52,7 @@ class AuthSessionSubscriber
             userAgent: request()->userAgent() ?? '',
             isRemembered: $event->remember,
             laravelSessionId: session()->getId(),
-            deviceId: request()->cookie('device_id'),
+            deviceId: $this->cookieDeviceId(request()),
         );
 
         // Store auth_session_id in Laravel session for later reference
@@ -98,7 +101,7 @@ class AuthSessionSubscriber
             return;
         }
 
-        $session = AuthSession::find($authSessionId);
+        $session = AuthSession::findById($authSessionId);
 
         if (! $session) {
             return;

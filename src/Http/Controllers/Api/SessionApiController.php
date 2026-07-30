@@ -6,6 +6,7 @@ namespace EpicAlgorithms\AuthSessions\Http\Controllers\Api;
 
 use EpicAlgorithms\ApiKit\Http\Concerns\HandlesApiQuery;
 use EpicAlgorithms\ApiKit\Http\Controllers\ApiController;
+use EpicAlgorithms\AuthSessions\Http\Concerns\ResolvesAuthenticatedUser;
 use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Enums\SessionRevokeReason;
 use EpicAlgorithms\AuthSessions\Http\Resources\AuthSessionResource;
@@ -26,6 +27,8 @@ use Illuminate\Http\Request;
  */
 class SessionApiController extends ApiController
 {
+    use ResolvesAuthenticatedUser;
+
     use HandlesApiQuery;
 
     public function __construct(
@@ -41,7 +44,7 @@ class SessionApiController extends ApiController
     public function index(Request $request): JsonResponse
     {
         $query = AuthSession::query()
-            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('user_id', $this->authenticated($request)->getAuthIdentifier())
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now());
 
@@ -94,7 +97,7 @@ class SessionApiController extends ApiController
      */
     public function destroyOthers(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->authenticated($request);
 
         $currentSessionId = session(SessionKey::AUTH_SESSION_ID)
             ?? $request->input('current_session_id');

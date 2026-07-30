@@ -19,9 +19,13 @@ class EnforceDeviceReauth
     {
         // Only check during remember cookie auto-login
         if (Auth::check() && Auth::viaRemember()) {
+            // Cookie values are array|string|null; only a single scalar cookie
+            // identifies a device.
             $deviceId = $request->cookie('device_id');
+            $userId = Auth::id();
 
-            if ($deviceId && $this->requiresReauth(Auth::id(), $deviceId)) {
+            if (is_string($deviceId) && $deviceId !== '' && (is_int($userId) || is_string($userId))
+                && $this->requiresReauth($userId, $deviceId)) {
                 return $this->forceLogout($request, 'Please log in again to continue.');
             }
         }

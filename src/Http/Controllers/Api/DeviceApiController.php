@@ -6,6 +6,7 @@ namespace EpicAlgorithms\AuthSessions\Http\Controllers\Api;
 
 use EpicAlgorithms\ApiKit\Http\Concerns\HandlesApiQuery;
 use EpicAlgorithms\ApiKit\Http\Controllers\ApiController;
+use EpicAlgorithms\AuthSessions\Http\Concerns\ResolvesAuthenticatedUser;
 use EpicAlgorithms\AuthSessions\Http\Resources\AuthDeviceResource;
 use EpicAlgorithms\AuthSessions\Models\AuthDevice;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,8 @@ use Illuminate\Http\Request;
  */
 class DeviceApiController extends ApiController
 {
+    use ResolvesAuthenticatedUser;
+
     use HandlesApiQuery;
 
     /**
@@ -31,7 +34,7 @@ class DeviceApiController extends ApiController
     public function index(Request $request): JsonResponse
     {
         $query = AuthDevice::query()
-            ->where('user_id', $request->user()->getAuthIdentifier());
+            ->where('user_id', $this->authenticated($request)->getAuthIdentifier());
 
         $query = $this->applyApiSorts($query, $request, ['created_at', 'requires_reauth_at']);
 

@@ -10,6 +10,7 @@ use EpicAlgorithms\AuthSessions\Models\AuthDevice;
 use EpicAlgorithms\AuthSessions\Models\AuthSession;
 use EpicAlgorithms\AuthSessions\Services\AuthSessionService;
 use EpicAlgorithms\AuthSessions\Services\DeviceDetectionService;
+use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -40,7 +41,7 @@ class AuthSessionsServiceProvider extends ApiKitServiceProvider
         $this->registerModuleApi('auth-sessions', __DIR__.'/../routes/api.php');
 
         if (class_exists(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class)) {
-            $this->app['events']->subscribe(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class);
+            $this->app->make(EventDispatcher::class)->subscribe(\EpicAlgorithms\AuthSessions\Listeners\AuthSessionSubscriber::class);
         }
 
         if ($this->app->runningInConsole()) {

@@ -8,11 +8,14 @@ use EpicAlgorithms\AuthSessions\Constants\SessionKey;
 use EpicAlgorithms\AuthSessions\Enums\SessionRevokeReason;
 use EpicAlgorithms\AuthSessions\Models\AuthSession;
 use EpicAlgorithms\AuthSessions\Services\AuthSessionService;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\View as ViewFactory;
 
 abstract class BaseSessionsController extends Controller
 {
@@ -22,10 +25,10 @@ abstract class BaseSessionsController extends Controller
 
     public function index(): View
     {
-        $user = Auth::user();
-
-        return view(config('auth-sessions.views.sessions'), [
-            'sessions' => $this->authSessionService->getActiveSessions($user),
+        // The view() helper widens to the view Factory in its no-argument
+        // form; going through the facade keeps the concrete View type.
+        return ViewFactory::make((string) config('auth-sessions.views.sessions'), [
+            'sessions' => $this->authSessionService->getActiveSessions($this->currentUser()),
             'currentSessionId' => session()->getId(),
         ]);
     }
@@ -51,16 +54,36 @@ abstract class BaseSessionsController extends Controller
 
     public function destroyOthers(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $user = $this->currentUser();
 
         // Use auth_session_id from session data (more reliable than laravel_session_id
         // which can change during session regeneration)
         $authSessionId = session(SessionKey::AUTH_SESSION_ID);
 
-        if ($authSessionId) {
-            $this->authSessionService->revokeOtherSessionsById($user, $authSessionId);
+        if (is_string($authSessionId) || is_int($authSessionId)) {
+            $this->authSessionService->revokeOtherSessionsById($user, (string) $authSessionId);
         }
 
         return back()->with('status', 'All other sessions have been terminated.');
+    }
+
+    /**
+     * The authenticated user, or a hard failure.
+     *
+     * These routes always sit behind the auth middleware, so a null user means
+     * the middleware was misconfigured; a 401 beats passing null to the
+     * session service.
+     *
+     * @throws AuthenticationException
+     */
+    protected function currentUser(): Authenticatable
+    {
+        $user = Auth::user();
+
+        if ($user === null) {
+            throw new AuthenticationException();
+        }
+
+        return $user;
     }
 }

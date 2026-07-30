@@ -28,7 +28,7 @@ class EnforceSessionExpiry
             $authSessionId = session(SessionKey::AUTH_SESSION_ID);
 
             if ($authSessionId) {
-                $authSession = AuthSession::find($authSessionId);
+                $authSession = AuthSession::findById($authSessionId);
 
                 // Store on request for other middleware to reuse
                 $request->attributes->set('authSession', $authSession);

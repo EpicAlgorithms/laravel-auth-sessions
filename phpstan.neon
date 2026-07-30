@@ -2,7 +2,10 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 0
+    level: 8
     paths:
         - src
+        # TestUser consumes HasAuthSessions, so the trait is analysed in the
+        # context of a class that actually uses it.
+        - tests/TestCase.php
     tmpDir: build/phpstan

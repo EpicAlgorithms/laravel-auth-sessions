@@ -70,6 +70,8 @@ class TestCase extends OrchestraTestCase
 class TestUser extends Authenticatable
 {
     use HasAuthSessions;
+
+    /** @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<self>> */
     use HasFactory;
 
     protected $table = 'users';

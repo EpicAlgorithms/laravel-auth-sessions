@@ -71,7 +71,13 @@ class DeviceDetectionService
         return $this->resolveString($agent->device());
     }
 
-    private function resolveString(string|bool|null $value): ?string
+    /**
+     * Normalise the loosely typed values the agent parser hands back.
+     *
+     * Agent::version() returns a float for numeric versions and false when it
+     * cannot determine one, while Agent::device() returns a string or false.
+     */
+    private function resolveString(string|bool|float|null $value): ?string
     {
         if (! $value || $value === 'unknown' || is_bool($value)) {
             return null;

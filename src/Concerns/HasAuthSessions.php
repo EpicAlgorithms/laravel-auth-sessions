@@ -10,13 +10,22 @@ use EpicAlgorithms\AuthSessions\Models\AuthSession;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @mixin \Illuminate\Database\Eloquent\Model
+ */
 trait HasAuthSessions
 {
+    /**
+     * @return HasMany<AuthSession, $this>
+     */
     public function authSessions(): HasMany
     {
         return $this->hasMany(AuthSession::class, 'user_id');
     }
 
+    /**
+     * @return HasMany<AuthDevice, $this>
+     */
     public function authDevices(): HasMany
     {
         return $this->hasMany(AuthDevice::class, 'user_id');
@@ -30,12 +39,18 @@ trait HasAuthSessions
             return null;
         }
 
-        return $this->authSessions()->whereKey($sessionId)->first();
+        $session = $this->authSessions()->whereKey($sessionId)->first();
+
+        return $session instanceof AuthSession ? $session : null;
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeWithActiveSessions(Builder $query): Builder
     {
-        return $query->whereHas('authSessions', function (Builder $q) {
+        return $query->whereHas('authSessions', function (Builder $q): void {
             $q->whereNull('revoked_at')->where('expires_at', '>', now());
         });
     }

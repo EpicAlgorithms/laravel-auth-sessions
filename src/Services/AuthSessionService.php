@@ -115,6 +115,9 @@ class AuthSessionService
         });
     }
 
+    /**
+     * @return Collection<int, AuthSession>
+     */
     public function getActiveSessions(Authenticatable $user): Collection
     {
         return AuthSession::where('user_id', $user->getAuthIdentifier())

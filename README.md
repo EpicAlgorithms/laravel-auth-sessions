@@ -1,6 +1,13 @@
 # Laravel Auth Sessions
 
+[![tests](https://github.com/EpicAlgorithms/laravel-auth-sessions/actions/workflows/tests.yml/badge.svg)](https://github.com/EpicAlgorithms/laravel-auth-sessions/actions/workflows/tests.yml)
+
 Stateful session and device tracking for Laravel. Models, middleware, publishable views.
+
+## Requirements
+
+- PHP `^8.4`
+- Laravel `^13.0`
 
 ## Installation
 
@@ -40,3 +47,15 @@ Revoked/expired rows are kept for a 30-day grace window, then removed by the
 
     php artisan vendor:publish --tag=auth-sessions-views
     php artisan vendor:publish --tag=auth-sessions-notifications
+
+## Testing
+
+```bash
+composer install
+vendor/bin/phpstan analyse --memory-limit=2G
+vendor/bin/pest
+```
+
+CI runs the same checks on every push and pull request
+(`.github/workflows/tests.yml`), against PHP 8.4 / Laravel 13. Static analysis
+is held at **PHPStan level 8**; the suite runs on **Pest 5**.
